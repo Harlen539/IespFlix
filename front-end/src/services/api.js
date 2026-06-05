@@ -14,6 +14,10 @@ export function getHomeCatalog() {
   return request("/api/catalog/home");
 }
 
+export function getFullCatalog() {
+  return request("/api/catalog");
+}
+
 export function getFilmesCatalog() {
   return request("/api/catalog/filmes");
 }

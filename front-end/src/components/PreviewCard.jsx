@@ -7,7 +7,8 @@ export default function PreviewCard({
   position,
   onClose,
   isInMyList = false,
-  onToggleMyList
+  onToggleMyList,
+  onOpenDetails
 }) {
   const previewRef = useRef(null);
   const [playing, setPlaying] = useState(false);
@@ -107,8 +108,8 @@ export default function PreviewCard({
           <button
             className="preview-round preview-more"
             type="button"
-            aria-label="Fechar"
-            onClick={onClose}
+            aria-label="Mais informações"
+            onClick={() => onOpenDetails?.(item)}
           >
             <ChevronDown size={22} />
           </button>

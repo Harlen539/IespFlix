@@ -26,6 +26,12 @@ export default function AutoHeroCarousel({ slides = [] }) {
 
   if (!currentSlide) return null;
 
+  function openDetails() {
+    window.dispatchEvent(new CustomEvent("iespflix:open-details", {
+      detail: currentSlide
+    }));
+  }
+
   return (
     <section
       className="auto-hero"
@@ -57,7 +63,7 @@ export default function AutoHeroCarousel({ slides = [] }) {
             Assistir
           </button>
 
-          <button className="info-btn" id="info-btn">
+          <button className="info-btn" id="info-btn" onClick={openDetails}>
             <Info size={27} />
             Mais informações
           </button>

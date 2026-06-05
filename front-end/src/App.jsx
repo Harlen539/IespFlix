@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import PreviewCard from "./components/PreviewCard";
+import MovieDetailsModal from "./components/MovieDetailsModal";
 import Home from "./pages/Home";
 import Filmes from "./pages/Filmes";
 import Series from "./pages/Series";
@@ -12,6 +13,7 @@ import Idiomas from "./pages/Idiomas";
 export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [preview, setPreview] = useState(null);
+  const [selectedMovie, setSelectedMovie] = useState(null);
   const [myList, setMyList] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("iespflix:my-list")) || [];
@@ -51,6 +53,14 @@ export default function App() {
       closeTimerRef.current = null;
     }, 180);
   }, [cancelScheduledClose]);
+  const openDetails = useCallback((item) => {
+    cancelScheduledClose();
+    setPreview(null);
+    setSelectedMovie(item);
+  }, [cancelScheduledClose]);
+  const closeDetails = useCallback(() => {
+    setSelectedMovie(null);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("iespflix:my-list", JSON.stringify(myList));
@@ -62,17 +72,23 @@ export default function App() {
       setPreview(event.detail);
     }
 
+    function handleOpenDetails(event) {
+      openDetails(event.detail);
+    }
+
     window.addEventListener("iespflix:open-preview", handleOpenPreview);
+    window.addEventListener("iespflix:open-details", handleOpenDetails);
     window.addEventListener("iespflix:schedule-close-preview", scheduleClosePreview);
     window.addEventListener("iespflix:cancel-close-preview", cancelScheduledClose);
 
     return () => {
       window.removeEventListener("iespflix:open-preview", handleOpenPreview);
+      window.removeEventListener("iespflix:open-details", handleOpenDetails);
       window.removeEventListener("iespflix:schedule-close-preview", scheduleClosePreview);
       window.removeEventListener("iespflix:cancel-close-preview", cancelScheduledClose);
       cancelScheduledClose();
     };
-  }, [cancelScheduledClose, scheduleClosePreview]);
+  }, [cancelScheduledClose, openDetails, scheduleClosePreview]);
 
   return (
     <div className={isCatalogPage ? "app catalog-page" : "app"}>
@@ -94,6 +110,17 @@ export default function App() {
           onClose={closePreview}
           isInMyList={isInMyList(preview.item.id)}
           onToggleMyList={toggleMyList}
+          onOpenDetails={openDetails}
+        />
+      )}
+
+      {selectedMovie && (
+        <MovieDetailsModal
+          movie={selectedMovie}
+          onClose={closeDetails}
+          isInMyList={isInMyList(selectedMovie.id)}
+          onToggleMyList={toggleMyList}
+          onOpenDetails={openDetails}
         />
       )}
     </div>
