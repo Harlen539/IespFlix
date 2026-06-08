@@ -5,6 +5,7 @@ dotenv.config();
 const TMDB_API_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_POSTER = "https://image.tmdb.org/t/p/w780";
 const TMDB_IMAGE_BACKDROP = "https://image.tmdb.org/t/p/original";
+const ITEM_LIMIT = 18;
 
 const API_KEY = process.env.TMDB_API_KEY;
 const BEARER_TOKEN = process.env.TMDB_BEARER_TOKEN;
@@ -103,6 +104,16 @@ function onlyWithImages(items) {
   return items.filter((item) => item.poster_path && item.backdrop_path);
 }
 
+function uniqueById(items) {
+  const seen = new Set();
+
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
 function fallbackRawItems(mediaType, label, page = 1) {
   const movieTitles = [
     "Operacao Horizonte",
@@ -114,7 +125,15 @@ function fallbackRawItems(mediaType, label, page = 1) {
     "Lado Oculto",
     "Plano Perfeito",
     "Depois da Tempestade",
-    "Linha de Frente"
+    "Linha de Frente",
+    "Fronteira Final",
+    "Contrato Secreto",
+    "O Ultimo Sinal",
+    "Mar Aberto",
+    "Rastro Vermelho",
+    "Ponto Cego",
+    "Alvo Noturno",
+    "Vidas Cruzadas"
   ];
 
   const seriesTitles = [
@@ -127,7 +146,15 @@ function fallbackRawItems(mediaType, label, page = 1) {
     "Temporada Final",
     "Clube dos Genios",
     "Mapa Secreto",
-    "Nova Jornada"
+    "Nova Jornada",
+    "Turno da Noite",
+    "Vila Oculta",
+    "Conexao Central",
+    "Ultima Chamada",
+    "Sala 404",
+    "Linha Direta",
+    "Projeto Aurora",
+    "Depois do Intervalo"
   ];
 
   const titles = mediaType === "movie" ? movieTitles : seriesTitles;
@@ -151,49 +178,58 @@ function fallbackRawItems(mediaType, label, page = 1) {
   });
 }
 
-export async function discoverMoviesByGenre({ genreId, label, page = 1 }) {
+export async function discoverMoviesByGenre({ genreId, label, page = 1, extraParams = {} }) {
   if (!hasApiKey()) {
     return fallbackRawItems("movie", label, page)
-      .slice(0, 10)
+      .slice(0, ITEM_LIMIT)
       .map((item, index) => normalizeItem(item, "movie", label, index));
   }
 
-  const data = await tmdbRequest("/discover/movie", {
-    with_genres: genreId,
-    sort_by: "popularity.desc",
-    include_adult: "false",
-    page
-  });
+  const pages = await Promise.all(
+    [page, page + 1].map((pageNumber) =>
+      tmdbRequest("/discover/movie", {
+        with_genres: genreId,
+        sort_by: "popularity.desc",
+        include_adult: "false",
+        page: pageNumber,
+        ...extraParams
+      })
+    )
+  );
 
-  return onlyWithImages(data.results || [])
-    .slice(0, 10)
+  return uniqueById(onlyWithImages(pages.flatMap((data) => data.results || [])))
+    .slice(0, ITEM_LIMIT)
     .map((item, index) => normalizeItem(item, "movie", label, index));
 }
 
 export async function discoverSeriesByGenre({ genreId, label, page = 1, extraParams = {} }) {
   if (!hasApiKey()) {
     return fallbackRawItems("tv", label, page)
-      .slice(0, 10)
+      .slice(0, ITEM_LIMIT)
       .map((item, index) => normalizeItem(item, "tv", label, index));
   }
 
-  const data = await tmdbRequest("/discover/tv", {
-    with_genres: genreId,
-    sort_by: "popularity.desc",
-    include_adult: "false",
-    page,
-    ...extraParams
-  });
+  const pages = await Promise.all(
+    [page, page + 1].map((pageNumber) =>
+      tmdbRequest("/discover/tv", {
+        with_genres: genreId,
+        sort_by: "popularity.desc",
+        include_adult: "false",
+        page: pageNumber,
+        ...extraParams
+      })
+    )
+  );
 
-  return onlyWithImages(data.results || [])
-    .slice(0, 10)
+  return uniqueById(onlyWithImages(pages.flatMap((data) => data.results || [])))
+    .slice(0, ITEM_LIMIT)
     .map((item, index) => normalizeItem(item, "tv", label, index));
 }
 
 export async function searchSeries({ query, label }) {
   if (!hasApiKey()) {
     return fallbackRawItems("tv", label || query)
-      .slice(0, 10)
+      .slice(0, ITEM_LIMIT)
       .map((item, index) => normalizeItem(item, "tv", label, index));
   }
 
@@ -204,6 +240,6 @@ export async function searchSeries({ query, label }) {
   });
 
   return onlyWithImages(data.results || [])
-    .slice(0, 10)
+    .slice(0, ITEM_LIMIT)
     .map((item, index) => normalizeItem(item, "tv", label, index));
 }

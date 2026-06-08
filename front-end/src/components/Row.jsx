@@ -1,6 +1,9 @@
 import Card from "./Card";
+import ScrollableRow from "./ScrollableRow";
 
 export default function Row({ title, items = [] }) {
+  if (!items.length) return null;
+
   return (
     <section className="row">
       <div className="row-header">
@@ -12,11 +15,11 @@ export default function Row({ title, items = [] }) {
         </div>
       </div>
 
-      <div className="card-scroller">
+      <ScrollableRow className="card-scroller" label={title}>
         {items.map((item) => (
           <Card key={item.id} item={item} />
         ))}
-      </div>
+      </ScrollableRow>
     </section>
   );
 }

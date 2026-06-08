@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import MediaImage from "./MediaImage";
 
 const PREVIEW_WIDTH = 306;
 
@@ -60,18 +61,18 @@ export default function Card({ item, large = false, variant = "" }) {
       onPointerUp={openPreview}
       tabIndex={0}
     >
-      {item.image && (
-        <img
-          src={item.image}
-          alt={item.title}
-          className="card-real-image"
-          loading="lazy"
-        />
-      )}
+      <MediaImage
+        src={item.backdrop || item.image}
+        alt={item.title}
+        title={item.title}
+        className="card-real-image"
+        variant={variant === "top10" ? "top10" : "card"}
+        loading="lazy"
+      />
 
       <div className="card-shine" />
 
-      <span className="card-title">{item.title}</span>
+      {!item.image && <span className="card-title">{item.title}</span>}
 
       {item.tag && <span className="card-tag">{item.tag}</span>}
       {variant === "top10" && <span className="card-watch-now">Assista já</span>}

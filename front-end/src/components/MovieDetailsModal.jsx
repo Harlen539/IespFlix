@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getFullCatalog } from "../services/api";
+import MediaImage from "./MediaImage";
 import SimilarTitleCard from "./SimilarTitleCard";
 import TrailerCard from "./TrailerCard";
 
@@ -354,7 +355,13 @@ export default function MovieDetailsModal({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <section className="movie-details-hero">
-          {details.bannerImage && <img src={details.bannerImage} alt="" className="movie-details-hero-image" />}
+          <MediaImage
+            src={details.bannerImage}
+            alt={details.title}
+            title={details.title}
+            className="movie-details-hero-image"
+            variant="details"
+          />
           <div className="movie-details-gradient" />
 
           <button className="movie-details-close" type="button" aria-label="Fechar" onClick={onClose}>

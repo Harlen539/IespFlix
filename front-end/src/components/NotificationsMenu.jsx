@@ -1,10 +1,10 @@
-export default function NotificationsMenu({ notifications = [] }) {
+export default function NotificationsMenu({ notifications = [], onSelect }) {
   return (
     <div className="notifications-menu">
       <div className="menu-arrow" />
 
       {notifications.map((item) => (
-        <div className="notification-item" key={item.id}>
+        <button className="notification-item" key={item.id} onClick={() => onSelect?.(item)}>
           <img src={item.image} alt={item.title} className="notification-thumb" />
 
           <div>
@@ -12,7 +12,7 @@ export default function NotificationsMenu({ notifications = [] }) {
             <p className="notification-text">{item.text}</p>
             <span className="notification-date">{item.date}</span>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );

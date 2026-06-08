@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Pause, Play, Plus, ThumbsUp, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import MediaImage from "./MediaImage";
 
 export default function PreviewCard({
   item,
@@ -59,9 +60,12 @@ export default function PreviewCard({
       }}
     >
       <div className="preview-media">
-        {(item.backdrop || item.image) && (
-          <img src={item.backdrop || item.image} alt={item.title} />
-        )}
+        <MediaImage
+          src={item.backdrop || item.image}
+          alt={item.title}
+          title={item.title}
+          variant="preview"
+        />
 
         <div className="preview-media-fade" />
         <p className="preview-title-on-media">{item.title}</p>

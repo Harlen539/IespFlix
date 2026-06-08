@@ -3,6 +3,7 @@ import { getFilmesCatalog } from "../services/api";
 import AutoHeroCarousel from "../components/AutoHeroCarousel";
 import GenreFilter from "../components/GenreFilter";
 import Row from "../components/Row";
+import TopTenRow from "../components/TopTenRow";
 
 export default function Filmes() {
   const [catalog, setCatalog] = useState(null);
@@ -36,6 +37,15 @@ export default function Filmes() {
       <AutoHeroCarousel slides={catalog.heroSlides} />
 
       <main className="content content-over-hero">
+        {selectedGenre === "all" &&
+          catalog.rows?.map((row) =>
+            row.type === "top10" ? (
+              <TopTenRow key={row.id} title={row.title} items={row.items} />
+            ) : (
+              <Row key={row.id} title={row.title} items={row.items} />
+            )
+          )}
+
         {visibleGenres.map((genre) => (
           <Row key={genre.id} title={genre.label} items={genre.items} />
         ))}

@@ -1,6 +1,9 @@
 import Card from "./Card";
+import ScrollableRow from "./ScrollableRow";
 
 export default function TopTenRow({ title, items = [] }) {
+  if (!items.length) return null;
+
   return (
     <section className="row top-row">
       <div className="row-header">
@@ -11,7 +14,7 @@ export default function TopTenRow({ title, items = [] }) {
         </div>
       </div>
 
-      <div className="top-scroller">
+      <ScrollableRow className="top-scroller" label={title}>
         {items.slice(0, 10).map((item, index) => (
           <article
             className={index === 9 ? "top-card-wrap top-card-wrap-wide" : "top-card-wrap"}
@@ -21,7 +24,7 @@ export default function TopTenRow({ title, items = [] }) {
             <Card item={item} variant="top10" />
           </article>
         ))}
-      </div>
+      </ScrollableRow>
     </section>
   );
 }

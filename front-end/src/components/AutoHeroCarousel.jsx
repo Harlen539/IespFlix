@@ -5,6 +5,7 @@ import {
   Volume2,
   VolumeX
 } from "lucide-react";
+import MediaImage from "./MediaImage";
 
 export default function AutoHeroCarousel({ slides = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -39,10 +40,12 @@ export default function AutoHeroCarousel({ slides = [] }) {
       onMouseLeave={() => setPaused(false)}
     >
       <div className="auto-hero-image-wrap">
-        <img
+        <MediaImage
           src={currentSlide.backdrop || currentSlide.image}
           alt={currentSlide.title}
+          title={currentSlide.title}
           className="auto-hero-image"
+          variant="hero"
         />
       </div>
 

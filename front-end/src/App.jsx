@@ -9,9 +9,27 @@ import Series from "./pages/Series";
 import Bombando from "./pages/Bombando";
 import MinhaLista from "./pages/MinhaLista";
 import Idiomas from "./pages/Idiomas";
+import AccountTopicPage from "./pages/AccountTopicPage";
+import ProfilesSettingsPage from "./pages/ProfilesSettingsPage";
+
+const pagePaths = {
+  home: "/",
+  filmes: "/filmes",
+  series: "/series",
+  bombando: "/bombando",
+  "minha-lista": "/minha-lista",
+  idiomas: "/idiomas",
+  "profiles-settings": "/conta/perfis",
+  "account-topic": "/conta/topico"
+};
+
+function pageFromPath(pathname) {
+  return Object.entries(pagePaths).find(([, path]) => path === pathname)?.[0] || "home";
+}
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("home");
+  const [currentPage, setCurrentPage] = useState(() => pageFromPath(window.location.pathname));
+  const [accountTopic, setAccountTopic] = useState("Visão geral");
   const [preview, setPreview] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [myList, setMyList] = useState(() => {
@@ -23,6 +41,7 @@ export default function App() {
   });
   const closeTimerRef = useRef(null);
   const isCatalogPage = currentPage === "filmes" || currentPage === "series";
+  const isAccountPage = currentPage === "profiles-settings" || currentPage === "account-topic";
   const isInMyList = useCallback(
     (itemId) => myList.some((item) => item.id === itemId),
     [myList]
@@ -61,10 +80,38 @@ export default function App() {
   const closeDetails = useCallback(() => {
     setSelectedMovie(null);
   }, []);
+  const navigateTo = useCallback((page) => {
+    const nextPath = pagePaths[page] || "/";
+
+    setCurrentPage(page);
+
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({}, "", nextPath);
+    }
+  }, []);
+  const handleLogout = useCallback(() => {
+    navigateTo("home");
+    setPreview(null);
+    setSelectedMovie(null);
+  }, [navigateTo]);
+  const handleAction = useCallback((topic) => {
+    setAccountTopic(topic);
+    navigateTo("account-topic");
+  }, [navigateTo]);
 
   useEffect(() => {
     localStorage.setItem("iespflix:my-list", JSON.stringify(myList));
   }, [myList]);
+
+  useEffect(() => {
+    function handlePopState() {
+      setCurrentPage(pageFromPath(window.location.pathname));
+    }
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     function handleOpenPreview(event) {
@@ -91,8 +138,13 @@ export default function App() {
   }, [cancelScheduledClose, openDetails, scheduleClosePreview]);
 
   return (
-    <div className={isCatalogPage ? "app catalog-page" : "app"}>
-      <Header currentPage={currentPage} setCurrentPage={setCurrentPage} />
+    <div className={isAccountPage ? "app account-app" : isCatalogPage ? "app catalog-page" : "app"}>
+      <Header
+        currentPage={currentPage}
+        setCurrentPage={navigateTo}
+        onLogout={handleLogout}
+        onAction={handleAction}
+      />
 
       {currentPage === "home" && <Home />}
       {currentPage === "filmes" && <Filmes />}
@@ -100,10 +152,16 @@ export default function App() {
       {currentPage === "bombando" && <Bombando />}
       {currentPage === "minha-lista" && <MinhaLista items={myList} />}
       {currentPage === "idiomas" && <Idiomas />}
+      {currentPage === "profiles-settings" && (
+        <ProfilesSettingsPage onGoTo={navigateTo} onAction={handleAction} />
+      )}
+      {currentPage === "account-topic" && (
+        <AccountTopicPage topic={accountTopic} onGoTo={navigateTo} onAction={handleAction} />
+      )}
 
-      <Footer />
+      {!isAccountPage && <Footer />}
 
-      {preview && (
+      {!isAccountPage && preview && (
         <PreviewCard
           item={preview.item}
           position={preview.position}
@@ -114,7 +172,7 @@ export default function App() {
         />
       )}
 
-      {selectedMovie && (
+      {!isAccountPage && selectedMovie && (
         <MovieDetailsModal
           movie={selectedMovie}
           onClose={closeDetails}

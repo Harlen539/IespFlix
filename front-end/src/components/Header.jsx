@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Bell, ChevronDown, Menu, Search, X } from "lucide-react";
+import AccountDropdown from "./AccountDropdown";
 import NotificationsMenu from "./NotificationsMenu";
 import ProfileMenu from "./ProfileMenu";
-import { getNotifications, getProfiles } from "../services/api";
+import { getNotifications } from "../services/api";
 
 const navItems = [
   { id: "home", label: "Início" },
@@ -13,16 +14,15 @@ const navItems = [
   { id: "idiomas", label: "Navegar por idiomas" }
 ];
 
-export default function Header({ currentPage, setCurrentPage }) {
+export default function Header({ currentPage, setCurrentPage, onLogout, onAction }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [profiles, setProfiles] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const isAccountPage = currentPage === "profiles-settings" || currentPage === "account-topic";
 
   useEffect(() => {
-    getProfiles().then(setProfiles).catch(() => setProfiles([]));
     getNotifications().then(setNotifications).catch(() => setNotifications([]));
   }, []);
 
@@ -39,23 +39,27 @@ export default function Header({ currentPage, setCurrentPage }) {
 
   function goTo(page) {
     setCurrentPage(page);
+    setProfileOpen(false);
+    setNotifOpen(false);
     setMobileOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
-    <header className={scrolled ? "header header-scrolled" : "header header-at-top"}>
+    <header className={isAccountPage ? "header account-header" : scrolled ? "header header-scrolled" : "header header-at-top"}>
       <div className="header-left">
-        <button className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
+        {!isAccountPage && (
+          <button className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
           <Menu size={24} />
-        </button>
+          </button>
+        )}
 
         <button className="logo-button" onClick={() => goTo("home")}>
           <img src="/assets/iespflix-logo.png" alt="IESPFLIX" className="brand-logo" />
           <span className="brand-fallback">IESPFLIX</span>
         </button>
 
-        <nav className="desktop-nav">
+        {!isAccountPage && <nav className="desktop-nav">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -65,17 +69,23 @@ export default function Header({ currentPage, setCurrentPage }) {
               {item.label}
             </button>
           ))}
-        </nav>
+        </nav>}
       </div>
 
       <div className="header-right">
-        <button className="icon-btn" id="search-btn">
+        {!isAccountPage && <button
+          className="icon-btn"
+          id="search-btn"
+          onClick={() => onAction?.("Busca aberta.")}
+        >
           <Search size={23} />
-        </button>
+        </button>}
 
-        <button className="kids-btn">Infantil</button>
+        {!isAccountPage && <button className="kids-btn" onClick={() => onAction?.("Área Infantil aberta.")}>
+          Infantil
+        </button>}
 
-        <div className="relative">
+        {!isAccountPage && <div className="relative">
           <button
             className="icon-btn"
             id="notifications-btn"
@@ -87,13 +97,22 @@ export default function Header({ currentPage, setCurrentPage }) {
             <Bell size={22} />
           </button>
 
-          {notifOpen && <NotificationsMenu notifications={notifications} />}
-        </div>
+          {notifOpen && (
+            <NotificationsMenu
+              notifications={notifications}
+              onSelect={(item) => {
+                onAction?.(`Notificação aberta: ${item.title}`);
+                setNotifOpen(false);
+              }}
+            />
+          )}
+        </div>}
 
         <div className="relative">
           <button
             className="profile-trigger"
             id="profile-btn"
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={() => {
               setProfileOpen((value) => !value);
               setNotifOpen(false);
@@ -103,11 +122,27 @@ export default function Header({ currentPage, setCurrentPage }) {
             <ChevronDown size={16} />
           </button>
 
-          {profileOpen && <ProfileMenu profiles={profiles} />}
+          {profileOpen && (
+            isAccountPage ? (
+              <AccountDropdown
+                onClose={() => setProfileOpen(false)}
+                onGoTo={goTo}
+                onLogout={onLogout}
+                onAction={onAction}
+              />
+            ) : (
+              <ProfileMenu
+                onClose={() => setProfileOpen(false)}
+                onGoTo={goTo}
+                onLogout={onLogout}
+                onAction={onAction}
+              />
+            )
+          )}
         </div>
       </div>
 
-      {mobileOpen && (
+      {!isAccountPage && mobileOpen && (
         <div className="mobile-panel">
           <div className="mobile-panel-header">
             <img src="/assets/iespflix-logo.jpeg" alt="IESPFLIX" className="mobile-logo" />

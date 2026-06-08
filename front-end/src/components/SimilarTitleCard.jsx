@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import MediaImage from "./MediaImage";
 
 function ratingClass(rating) {
   const value = String(rating || "14").replace(/^A/i, "");
@@ -34,13 +35,13 @@ export default function SimilarTitleCard({ title, onSelect }) {
       aria-label={`Abrir detalhes de ${title.title}`}
     >
       <div className="similar-card-media">
-        {bannerImage && (
-          <img
-            src={bannerImage}
-            alt={title.title}
-            loading="lazy"
-          />
-        )}
+        <MediaImage
+          src={bannerImage}
+          alt={title.title}
+          title={title.title}
+          variant="similar"
+          loading="lazy"
+        />
 
         <div className="similar-card-title-fade" />
         <h3 className="similar-card-title">{title.title}</h3>
