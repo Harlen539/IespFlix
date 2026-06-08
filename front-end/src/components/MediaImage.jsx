@@ -48,32 +48,33 @@ export default function MediaImage({
   loading
 }) {
   const [sourceIndex, setSourceIndex] = useState(0);
-  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
   const style = useMemo(() => fallbackStyle(title, variant), [title, variant]);
   const imageSources = useMemo(() => resolveImageSources(src), [src]);
   const imageSource = imageSources[sourceIndex];
 
   useEffect(() => {
     setSourceIndex(0);
-    setLoaded(false);
+    setFailed(false);
   }, [src]);
 
   useEffect(() => {
-    if (!imageSource || loaded || imageSources.length < 2 || sourceIndex > 0) return;
+    if (!imageSource || failed || imageSources.length < 2 || sourceIndex > 0) return;
 
     const timer = setTimeout(() => {
       setSourceIndex(1);
-      setLoaded(false);
     }, 2200);
 
     return () => clearTimeout(timer);
-  }, [imageSource, imageSources.length, loaded, sourceIndex]);
+  }, [failed, imageSource, imageSources.length, sourceIndex]);
 
   function tryNextSource() {
-    setLoaded(false);
     setSourceIndex((current) => {
       const next = current + 1;
-      return next < imageSources.length ? next : current;
+      if (next < imageSources.length) return next;
+
+      setFailed(true);
+      return current;
     });
   }
 
@@ -88,15 +89,13 @@ export default function MediaImage({
         <span className="media-fallback-title">{title}</span>
       </div>
 
-      {imageSource && (
+      {imageSource && !failed && (
         <img
           key={imageSource}
           src={imageSource}
           alt=""
           loading={loading}
           decoding="async"
-          className={loaded ? "media-image-loaded" : ""}
-          onLoad={() => setLoaded(true)}
           onError={tryNextSource}
         />
       )}
