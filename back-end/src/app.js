@@ -7,14 +7,26 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
+const configuredOrigins = (process.env.CLIENT_ORIGIN || process.env.CLIENT_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
   /^http:\/\/localhost:\d+$/,
-  /^http:\/\/127\.0\.0\.1:\d+$/
+  /^http:\/\/127\.0\.0\.1:\d+$/,
+  /^https:\/\/[a-z0-9-]+\.vercel\.app$/i,
+  ...configuredOrigins
 ];
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.some((allowedOrigin) => allowedOrigin.test(origin))) {
+    const isAllowed = allowedOrigins.some((allowedOrigin) => {
+      if (allowedOrigin instanceof RegExp) return allowedOrigin.test(origin);
+      return allowedOrigin === origin;
+    });
+
+    if (!origin || isAllowed) {
       callback(null, true);
       return;
     }

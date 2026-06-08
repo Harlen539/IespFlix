@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: iespflix-api
+    runtime: node
+    plan: free
+    rootDir: back-end
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TMDB_BEARER_TOKEN
+        sync: false
+      - key: TMDB_API_KEY
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
