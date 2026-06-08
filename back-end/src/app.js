@@ -7,9 +7,19 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
-const configuredOrigins = (process.env.CLIENT_ORIGIN || process.env.CLIENT_ORIGINS || "")
+function normalizeOrigin(origin) {
+  return origin.replace(/\/+$/, "");
+}
+
+const configuredOrigins = (
+  process.env.CLIENT_ORIGIN ||
+  process.env.CLIENT_ORIGINS ||
+  process.env.CLIENTE_ORIGIN ||
+  ""
+)
   .split(",")
   .map((origin) => origin.trim())
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 const allowedOrigins = [
@@ -21,12 +31,13 @@ const allowedOrigins = [
 
 app.use(cors({
   origin(origin, callback) {
+    const normalizedOrigin = origin ? normalizeOrigin(origin) : "";
     const isAllowed = allowedOrigins.some((allowedOrigin) => {
-      if (allowedOrigin instanceof RegExp) return allowedOrigin.test(origin);
-      return allowedOrigin === origin;
+      if (allowedOrigin instanceof RegExp) return allowedOrigin.test(normalizedOrigin);
+      return allowedOrigin === normalizedOrigin;
     });
 
-    if (!origin || isAllowed) {
+    if (!normalizedOrigin || isAllowed) {
       callback(null, true);
       return;
     }
