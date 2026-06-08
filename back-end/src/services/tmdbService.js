@@ -4,7 +4,7 @@ dotenv.config();
 
 const TMDB_API_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_POSTER = "https://image.tmdb.org/t/p/w780";
-const TMDB_IMAGE_BACKDROP = "https://image.tmdb.org/t/p/original";
+const TMDB_IMAGE_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 const ITEM_LIMIT = 18;
 
 const API_KEY = process.env.TMDB_API_KEY;

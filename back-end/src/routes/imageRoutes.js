@@ -23,8 +23,12 @@ router.get("/", async (req, res) => {
     return;
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
   try {
-    const response = await fetch(imageUrl);
+    const response = await fetch(imageUrl, { signal: controller.signal });
+    clearTimeout(timeout);
 
     if (!response.ok) {
       res.status(response.status).json({ message: "Imagem não encontrada." });
@@ -33,9 +37,11 @@ router.get("/", async (req, res) => {
 
     const contentType = response.headers.get("content-type") || "image/jpeg";
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("Cache-Control", "public, max-age=604800, immutable");
+
     Readable.fromWeb(response.body).pipe(res);
   } catch {
+    clearTimeout(timeout);
     res.status(502).json({ message: "Não foi possível carregar a imagem." });
   }
 });
